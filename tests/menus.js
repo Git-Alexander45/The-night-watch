@@ -1,0 +1,46 @@
+const { chromium } = require('playwright');
+let fails = 0; const check = (c, m) => { console.log((c ? '  ok  ' : '  FAIL ') + m); if (!c) fails++; };
+(async () => {
+  const b = await chromium.launch(); const page = await b.newPage({ viewport: { width: 1366, height: 768 } });
+  const errs = []; page.on('pageerror', (e) => errs.push(e.message));
+  await page.goto('http://localhost:8123/index.html?view=2d'); await page.evaluate(() => localStorage.clear()); await page.reload(); await page.waitForTimeout(500);
+  check(await page.evaluate(() => document.getElementById('b-continue').disabled), 'Continue disabled with no save');
+  await page.click('#b-new'); await page.waitForTimeout(200);
+  check(await page.evaluate(() => NW.UI.isOpen('newgame')), 'New Game opens the setup screen');
+  await page.evaluate(() => { for (const id of ['ng-intro', 'ng-guided']) { const i = document.getElementById(id); if (i && i.checked) i.click(); } });
+  await page.click('#ng-start'); await page.waitForTimeout(300);
+  check(!(await page.evaluate(() => NW.UI.isOpen('confirm'))) && await page.evaluate(() => NW.G.mode === 'play' && NW.G.state.slot === 1), 'no confirm when the slot is empty; run starts in slot 1');
+  // play a bit: walk
+  await page.keyboard.down('KeyS'); await page.waitForTimeout(400); await page.keyboard.up('KeyS');
+  await page.evaluate(() => { NW.G.state.time.min = 20 * 60 + 13; NW.G.state.time.day = 2; });
+  await page.keyboard.press('Escape'); await page.waitForTimeout(200);
+  check(await page.evaluate(() => NW.UI.isOpen('pause') && NW.G.paused), 'Esc opens pause menu and pauses');
+  const t0 = await page.evaluate(() => NW.G.state.time.min); await page.waitForTimeout(500);
+  check(await page.evaluate((t) => NW.G.state.time.min === t, t0), 'time frozen while paused');
+  await page.screenshot({ path: '/tmp/shots/m-pause.png' });
+  await page.click('#p-quit'); await page.waitForTimeout(300);
+  check(await page.evaluate(() => NW.G.mode === 'menu'), 'Save & Quit returns to menu');
+  const info = await page.textContent('#save-info');
+  check(/Day 2 · 20:13/.test(info), 'menu shows saved moment: ' + info);
+  await page.click('#b-continue'); await page.waitForTimeout(200);
+  const st = await page.evaluate(() => ({ d: NW.G.state.time.day, m: Math.floor(NW.G.state.time.min), mode: NW.G.mode, paused: NW.G.paused }));
+  check(st.d === 2 && st.m >= 20 * 60 + 13 && st.m <= 20 * 60 + 14 && st.mode === 'play' && !st.paused, 'Continue resumes the exact moment (' + st.d + ' ' + st.m + ')');
+  await page.keyboard.press('Escape'); await page.click('#p-quit'); await page.waitForTimeout(200);
+  await page.click('#b-new'); await page.waitForTimeout(200);
+  check(await page.evaluate(() => document.querySelector('input[name=ng-slot]:checked').value === '2'), 'setup screen picks the first free slot');
+  await page.click('input[name=ng-slot][value="1"]'); await page.waitForTimeout(100);
+  await page.click('#ng-start'); await page.waitForTimeout(150);
+  check(await page.evaluate(() => NW.UI.isOpen('confirm')), 'New Game into a used slot asks before overwriting');
+  await page.click('#c-no'); await page.waitForTimeout(100);
+  check(await page.evaluate(() => NW.Save.exists(1) && NW.G.mode === 'menu'), 'Cancel keeps the run');
+  await page.click('#ng-start'); await page.waitForTimeout(100); await page.click('#c-yes'); await page.waitForTimeout(300);
+  check(await page.evaluate(() => NW.G.state.time.day === 1 && NW.G.mode === 'play' && NW.G.state.slot === 1), 'confirming starts a fresh run');
+  // settings
+  await page.keyboard.press('Escape'); await page.click('#p-settings'); await page.waitForTimeout(100);
+  await page.fill('.panel-settings input[data-k="music"]', '20');
+  await page.dispatchEvent('.panel-settings input[data-k="music"]', 'input');
+  check(await page.evaluate(() => Math.abs(NW.settings.music - 0.2) < 0.01 && JSON.parse(localStorage.getItem('nightwatch.settings')).music === 0.2), 'volume slider applies and persists');
+  await page.screenshot({ path: '/tmp/shots/m-settings.png' });
+  console.log('errors:', errs); console.log(fails ? fails + ' FAILURES' : 'ALL PASSED');
+  await b.close(); process.exit(fails ? 1 : 0);
+})();

@@ -1,0 +1,14 @@
+{
+  "name": "the-night-watch",
+  "version": "1.0.0",
+  "description": "A top-down pixel-art survival horror game for the browser.",
+  "private": true,
+  "scripts": {
+    "start": "npx http-server -p 8000 -c-1 .",
+    "serve-test": "npx http-server -p 8123 -s -c-1 .",
+    "test": "node tests/functional.js && node tests/night.js && node tests/events.js && node tests/menus.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}

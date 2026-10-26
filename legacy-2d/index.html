@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Night Watch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@700&family=VT323&family=Special+Elite&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2310141f'/%3E%3Cpath d='M2 9 L8 4 L14 9 Z' fill='%2354311d'/%3E%3Crect x='4' y='9' width='8' height='5' fill='%23382014'/%3E%3Crect x='6' y='10' width='3' height='2' fill='%23ffb746'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="root">
+    <div id="frame">
+      <canvas id="game" width="480" height="272"></canvas>
+      <div id="hud" class="hidden">
+        <div id="hud-tl">
+          <div id="clock"><span id="clk-day"></span><span id="clk-time"></span></div>
+          <div id="phase"><div id="phase-label"></div><div class="bar"><div id="phase-fill"></div></div></div>
+          <div id="wx"></div>
+          <div id="objectives"></div>
+        </div>
+        <div id="hud-tr">
+          <div class="stat" id="st-hp"><span class="lbl">Health</span><div class="bar"><div class="fill"></div></div><span class="val"></span></div>
+          <div class="stat" id="st-hunger"><span class="lbl">Hunger</span><div class="bar"><div class="fill"></div></div><span class="val"></span></div>
+          <div class="stat" id="st-stam"><span class="lbl">Stamina</span><div class="bar"><div class="fill"></div></div><span class="val"></span></div>
+          <div class="stat" id="st-temp"><span class="lbl">Body</span><div class="bar therm"><div class="fill"></div><i class="mark lo"></i><i class="mark hi"></i></div><span class="val"></span><span class="trend"></span></div>
+          <div id="hud-cabin" class="hidden"></div>
+        </div>
+        <div id="hud-msgs"></div>
+        <div id="hud-warn"></div>
+        <div id="hud-area"></div>
+        <div id="prompt" class="hidden"></div>
+        <div id="hud-br"></div>
+        <div id="save-blip">✓ Saved</div>
+      </div>
+      <div id="panels"></div>
+      <div id="menu" class="hidden"></div>
+    </div>
+  </div>
+  <script src="js/util.js"></script>
+  <script src="js/hooks.js"></script>
+  <script src="js/keys.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/items.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/objects.js"></script>
+  <script src="js/cabin.js"></script>
+  <script src="js/survival.js"></script>
+  <script src="js/night.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/mods/meta.js"></script>
+  <script src="js/mods/upgrades.js"></script>
+  <script src="js/mods/places.js"></script>
+  <script src="js/mods/fishing.js"></script>
+  <script src="js/mods/missions.js"></script>
+  <script src="js/mods/characters.js"></script>
+  <script src="js/mods/finale.js"></script>
+  <script src="js/mods/story.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
