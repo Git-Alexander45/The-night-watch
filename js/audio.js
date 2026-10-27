@@ -1027,7 +1027,7 @@
   const MOTIF_BAD = [[0, 1.5], [6, 1.5], [5, 0.75], [1, 0.75], [0, 3]];
   const BUSCFG = {
     menu: { lp: 16000, wet: 0.6, lvl: 1 }, day: { lp: 16000, wet: 0.55, lvl: 1 }, night: { lp: 16000, wet: 0.7, lvl: 1 },
-    intro: { lp: 9000, wet: 0.8, lvl: 1 }, credits: { lp: 16000, wet: 0.55, lvl: 1 }, finale: { lp: 12000, wet: 0.45, lvl: 1 },
+    intro: { lp: 9000, wet: 0.8, lvl: 1 }, finale: { lp: 12000, wet: 0.45, lvl: 1 },
     ending_good: { lp: 14000, wet: 0.65, lvl: 1 }, ending_bad: { lp: 6000, wet: 0.85, lvl: 1 },
     interior: { lp: 1100, wet: 0.35, lvl: 1 }, mine: { lp: 2400, wet: 0.9, lvl: 1 },
   };
@@ -1185,20 +1185,6 @@
       if (st.n % 2 === 0) phrase(b, t + 0.6, MOTIF, D3 * 2, 1.4, 'chime', 0.05);
       else phrase(b, t + 0.6, ANSWER, D3 * 2, 1.4, 'pluck', 0.07);
       bass(b, t, chords[st.n % 4][0], 0.12, len);
-      return len;
-    },
-    credits(b, t, st) {
-      const beat = 0.8, len = beat * 8;
-      const prog = [[73.42, [0, 3, 7]], [58.27, [0, 4, 7]], [87.31, [0, 4, 7]], [65.41, [0, 4, 7]]];
-      const [r, tri] = prog[st.n % 4];
-      pad(b, t, tri.map((x) => hz(r * 2, x)), 0.022, len + 1, 'triangle', 1300);
-      bass(b, t, r, 0.16, beat * 3.5); bass(b, t + beat * 4, r, 0.13, beat * 3.5);
-      const arp = [0, 1, 2, 1, 2, 3, 2, 1].map((i) => hz(r * 4, [0, tri[1], tri[2], 12][i]));
-      arp.forEach((f, i) => pluck(b, t + i * beat, f, 0.04, 1.6, 2000));
-      const ph = st.n % 8;
-      if (ph === 1 || ph === 5) phrase(b, t, MOTIF, D3 * 2, beat * 1.6, 'chime', 0.05);
-      else if (ph === 3) phrase(b, t, ANSWER, D3 * 2, beat * 1.6, 'chime', 0.05);
-      else if (ph === 7) phrase(b, t, MOTIF_MAJ.slice(0, 4), D3 * 2, beat * 1.6, 'pluck', 0.06);
       return len;
     },
     finale(b, t, st) {

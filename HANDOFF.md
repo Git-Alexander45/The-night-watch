@@ -12,7 +12,7 @@ burning (temperature, hunger), answer visitors at the door (peephole, questions,
 Mimics. Threats: Light Hunter, Dark Dweller, Scratcher, Siphon, Pale Stag, wolves. Radio, HQ missions,
 recurring characters, cabin upgrades, achievements, run history, 6 endings + finale (not on Easy).
 Difficulty: Easy 7 / Standard 7 / Hard 14 / Harder 25 nights / Custom. 3 save slots, shareable seeds, key
-rebinding, opening cinematic, credits, guided first day.
+rebinding, opening cinematic, guided first day (the credits were removed at the owner's request).
 
 Code layout:
 - `js/*.js` — core game (data, world, game loop `game.js`, survival, night, events, ui, save, render (2D), main).
@@ -75,7 +75,7 @@ Game logic stays in 2D pixel coordinates. The 3D layer reads state each frame an
 Edits to existing game files for 3D: `js/game.js` (settings defaults quality/view/perf/sens/invertY/mute;
 camera-relative movement; focus by view cone; `G.mouseWorld` = point ahead of camera), `js/main.js` (boot
 picks view; loop renders R3 or 2D; rifle fires on click when pointer-locked), `js/ui.js` (mute), `js/render.js`
-(`Rn.prints` export), `js/mods/story.js` (3D opening cinematic shots `intro3d`, credits over 3D), `css/style.css`
+(`Rn.prints` export), `js/mods/story.js` (3D opening cinematic shots `intro3d`), `css/style.css`
 (3D canvas, crosshair, perf readout, live-view panels).
 
 ## 4. Testing

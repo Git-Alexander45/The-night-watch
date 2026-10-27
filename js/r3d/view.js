@@ -412,8 +412,8 @@
   };
 
   // ------------------------------------------------------------------ menu scene & cinematics
-  // A static or scripted view of the world without the player: the main menu backdrop, the credits
-  // backdrop, and the opening scene. shot = { visible: [areaIds], pos: Vector3, look: Vector3, timeMin, override?(state), lights?(ctx) }
+  // A static or scripted view of the world without the player: the main menu backdrop and the opening scene.
+  // shot = { visible: [areaIds], pos: Vector3, look: Vector3, timeMin, override?(state), lights?(ctx) }
   let menuState = null;
   function menuStateNew(g) {
     const m = g.newState(424242);

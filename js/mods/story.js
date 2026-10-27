@@ -1,5 +1,5 @@
 'use strict';
-// Story module: the opening scene, the scrolling credits, and the guided first day.
+// Story module: the opening scene and the guided first day.
 (function (NW) {
   const U = NW.U, D = NW.D, S = NW.S, P = S.P, R = S.R;
   const G = () => NW.G;
@@ -418,84 +418,10 @@
     return true;
   });
 
-  // ============================================================== CREDITS
-  const ROLE = { lighthunter: 'the thing at the window', dweller: 'the dark in the corners', mimic: 'your visitors', scratcher: 'the thing at the door', siphon: 'the weight on the roof', stag: 'the bells in the trees', wolf: 'the howling' };
-  const FATE = { alive: 'still out there', safe: 'safe', missing: 'missing', dead: 'lost', taken: 'taken' };
-  function creditLines(run) {
-    const L = [], add = (k, a, b) => L.push({ k, a, b });
-    add('title', 'THE NIGHT WATCH'); add('sub', 'A Night Watch story');
-    if (run && G().state) {
-      const s = G().state, n = run.night || s.nightsSurvived;
-      add('dim', 'Ranger Station 7 · ' + U.numWord(n) + ' night' + (n === 1 ? '' : 's') + ' kept' + (run.ending && run.ending.title ? ' · ' + run.ending.title : ''));
-    }
-    add('gap', 34); add('head', 'MADE BY');
-    [['Design', 'Built with Claude Code'], ['Code', 'Built with Claude Code'], ['Pixel art', 'Built with Claude Code'], ['Sound & music', 'Built with Claude Code']].forEach((p) => add('pair', p[0], p[1]));
-    add('gap', 22); add('head', 'CAST');
-    add('pair', 'The ranger', 'you'); add('pair', 'Base', 'a voice on the radio'); add('pair', 'Juniper', 'a good dog');
-    for (const k in D.BESTIARY) add('pair', D.BESTIARY[k].name, ROLE[k] || 'as itself');
-    let people = [];
-    if (run && NW.Characters && NW.Characters.summary) { try { people = (NW.Characters.summary().list || []).filter((c) => c && c.name && c.fate && c.fate !== 'unmet'); } catch (e) { people = []; } }
-    if (people.length) { add('gap', 22); add('head', 'IN THE FOREST'); people.forEach((c) => add('pair', c.name, FATE[c.fate] || c.fate)); }
-    add('gap', 22); add('head', 'TYPEFACES'); add('line', 'Pixelify Sans · VT323 · Special Elite');
-    add('gap', 50); add('line', 'Keep the fire low. Keep the door locked.'); add('line', 'Count the breaths.');
-    add('gap', 70); add('end', 'Thank you for keeping the watch.');
-    let y = 0;
-    const HGT = { title: 36, sub: 22, dim: 20, head: 22, pair: 18, line: 18, end: 24 };
-    L.forEach((l) => { if (l.k === 'gap') { y += l.a; return; } l.y = y; y += HGT[l.k]; });
-    return L;
-  }
-  const SPEED = 22;
-  function creditsFrame(g, t, dt, sc) {
-    const c = sc.cr;
-    if (NW.R3 && NW.R3.active) { g.clearRect(0, 0, 480, 272); g.fillStyle = 'rgba(4,5,9,0.5)'; g.fillRect(0, 0, 480, 272); } // the 3D night scene shows behind
-    else { try { NW.Render.menuScene(g.canvas, t + 40, dt); } catch (e) { R(g, '#05060a', 0, 0, 480, 272); } g.fillStyle = 'rgba(4,5,9,0.66)'; g.fillRect(0, 0, 480, 272); }
-    const endY = c.lines[c.lines.length - 1].y;
-    let off = 290 - t * SPEED;
-    if (endY + off <= 124) { off = 124 - endY; if (c.holdAt == null) c.holdAt = t; }
-    for (const l of c.lines) {
-      if (l.y == null) continue;
-      const y = Math.round(l.y + off); if (y < -40 || y > 280) continue;
-      if (l.k === 'title') txt(g, l.a, 240, y, F_TITLE, C_AMBER, 'center', '#1a0e05');
-      else if (l.k === 'sub') txt(g, l.a, 240, y, F_UI, C_TEXT, 'center');
-      else if (l.k === 'dim') txt(g, l.a, 240, y, F_SMALL, C_DIM, 'center');
-      else if (l.k === 'head') txt(g, l.a, 240, y, F_SMALL, C_AMBER, 'center');
-      else if (l.k === 'pair') { txt(g, l.a, 232, y, F_UI, C_TEXT, 'right'); txt(g, l.b, 248, y, F_UI, C_DIM, 'left'); }
-      else if (l.k === 'line') txt(g, l.a, 240, y, F_UI, C_TEXT, 'center');
-      else if (l.k === 'end') txt(g, l.a, 240, y, F_TITLE.replace('24px', '18px'), C_AMBER, 'center', '#1a0e05');
-    }
-    // soft top and bottom edges
-    const top = g.createLinearGradient(0, 0, 0, 40); top.addColorStop(0, 'rgba(0,0,0,0.95)'); top.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = top; g.fillRect(0, 0, 480, 40);
-    const bot = g.createLinearGradient(0, 232, 0, 272); bot.addColorStop(0, 'rgba(0,0,0,0)'); bot.addColorStop(1, 'rgba(0,0,0,0.95)'); g.fillStyle = bot; g.fillRect(0, 232, 480, 40);
-    const fade = Math.max(U.clamp(1 - t / 1.2, 0, 1), c.holdAt != null ? U.clamp((t - c.holdAt - 4) / 1.2, 0, 1) : 0);
-    if (fade > 0) { g.fillStyle = 'rgba(0,0,0,' + fade + ')'; g.fillRect(0, 0, 480, 272); }
-    if (t > 0.8) txt(g, 'Esc · skip', 472, 3, F_SMALL, '#6f6658', 'right', false);
-  }
-  // Play the credits; onDone() runs afterwards (default: back to the main menu).
-  function playCredits(onDone, run) {
-    const prevMusic = NW.Audio.musicMode;
-    const sc = runScene({
-      id: 'credits', music: 'credits', dur: () => (sc.cr.holdAt != null ? sc.cr.holdAt + 5.3 : 1e9), frame: creditsFrame,
-      onEnd: () => { H.emit('creditsDone'); if (typeof onDone === 'function') onDone(prevMusic); else NW.UI.showMenu(); },
-    });
-    sc.cr = { lines: creditLines(run), holdAt: null };
-    G().sfx('page', { vol: 0.5 });
-    return sc;
-  }
   NW.Story = {
-    playCredits: (onDone) => playCredits(onDone, G().state && G().mode === 'play' ? { night: G().state.nightsSurvived } : null),
     guideActive: () => guideActive(),
     guideTarget: () => { const i = guideActive() && G().area ? currentStep() : -1; return i < 0 ? null : target(ORDER()[i]); },
   };
-  NW.UI.registerMenuButton('credits', 'Credits', () => { NW.UI.closeAll(); playCredits(null, null); }, 90);
-  // From the ending panel: credits, then back to the paused run with the same ending shown.
-  H.on('endingButtons', (ending, arg) => ({ id: 'credits', label: 'Credits', run: () => {
-    NW.UI.close('ending');
-    playCredits((prevMusic) => {
-      const g = G(); g.mode = 'play';
-      NW.UI.showGame(); NW.UI.open('ending', arg);
-      if (prevMusic) NW.Audio.setMusic(prevMusic);
-    }, { night: arg && arg.night, ending });
-  } }));
 
   // ======================================================== GUIDED FIRST DAY
   const ORDER = () => NW.UI.OBJECTIVES.map((o) => o.k);

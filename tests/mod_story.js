@@ -1,4 +1,4 @@
-// Story module: opening scene, credits (menu + ending), guided first day.
+// Story module: opening scene, guided first day; no credits anywhere.
 const { chromium } = require('playwright');
 const SHOTS = process.env.SHOTS || '/tmp/claude-0/-home-user/d607ac6a-93f8-5870-a0ad-942bb41b98fa/scratchpad/shots';
 let fails = 0; const check = (c, m) => { console.log((c ? '  ok  ' : '  FAIL ') + m); if (!c) fails++; };
@@ -8,7 +8,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? '  ok  ' : '  FAIL ') 
   await page.goto('http://localhost:8123/index.html?view=2d'); await page.evaluate(() => localStorage.clear()); await page.reload(); await page.waitForTimeout(500);
   const ev = (f, a) => page.evaluate(f, a);
   const shot = (n) => page.locator('#frame').screenshot({ path: SHOTS + '/story-' + n + '.png' });
-  await ev(() => { window._ev = { intro: 0, credits: 0 }; NW.Hooks.on('introDone', () => window._ev.intro++); NW.Hooks.on('creditsDone', () => window._ev.credits++); });
+  await ev(() => { window._ev = { intro: 0 }; NW.Hooks.on('introDone', () => window._ev.intro++); });
   const hudShown = () => ev(() => !document.getElementById('hud').classList.contains('hidden'));
   // fast-forward the running scene without input
   const runOut = (sec) => ev((sec) => { const cx = document.getElementById('game').getContext('2d'); for (let i = 0; i < sec * 10 && NW.scene; i++) NW.scene.frame(cx, 0.1); return NW.G.mode; }, sec);
@@ -21,7 +21,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? '  ok  ' : '  FAIL ') 
   const objText = async () => { await page.waitForTimeout(80); return ev(() => document.getElementById('objectives').textContent); };
 
   console.log('# Menu');
-  check(await ev(() => !!document.getElementById('b-x-credits')), 'main menu has a Credits button');
+  check(await ev(() => !document.getElementById('b-x-credits')), 'main menu has no Credits button');
   await page.click('#b-new'); await page.waitForTimeout(150);
   check(await ev(() => !!document.getElementById('ng-intro') && document.getElementById('ng-intro').checked), 'New Game offers the opening scene (checked)');
   await ev(() => NW.UI.closeAll());
@@ -117,7 +117,6 @@ let fails = 0; const check = (c, m) => { console.log((c ? '  ok  ' : '  FAIL ') 
   await ev(() => NW.UI.continueGame()); await page.waitForTimeout(200);
   o = await objText();
   check(/step 4\/10/.test(o) && await ev(() => NW.G.mode === 'play'), 'old save loads, guide state rebuilt (' + o + ')');
-  await ev(() => { window._ev = { intro: 0, credits: 0 }; NW.Hooks.on('creditsDone', () => window._ev.credits++); });
 
   console.log('# Steps through to dusk');
   await ev(() => NW.G.enterArea('room_main', 60, 90, 'up')); await ev(() => NW.debug.step(0.1)); await page.waitForTimeout(150);
@@ -178,33 +177,16 @@ let fails = 0; const check = (c, m) => { console.log((c ? '  ok  ' : '  FAIL ') 
   await ev(() => NW.debug.step(0.1));
   check(await ev(() => !NW.Story.guideActive()) && /^First day/.test(await objText()), 'unguided run: no guide, core list shown');
 
-  console.log('# Credits from the menu');
+  console.log('# No credits');
   await ev(() => NW.UI.showMenu()); await page.waitForTimeout(150);
-  await page.click('#b-x-credits'); await page.waitForTimeout(300);
-  check(await ev(() => NW.G.mode === 'scene' && document.getElementById('menu').classList.contains('hidden') && NW.Audio.musicMode === 'credits'), 'credits play over the menu, music credits');
-  for (const T of [3, 12, 22, 34]) { await ev((T) => { NW.scene.t = T; }, T); await page.waitForTimeout(110); await shot('credits-' + T); }
-  await page.keyboard.press('Escape'); await page.waitForTimeout(200);
-  check(await ev(() => NW.G.mode === 'menu' && !document.getElementById('menu').classList.contains('hidden') && window._ev.credits === 1), 'Esc returns to the menu, creditsDone fired');
-  await page.click('#b-x-credits'); await page.waitForTimeout(200);
-  const cm = await runOut(120);
-  check(cm === 'menu' && await ev(() => window._ev.credits === 2), 'credits roll to the end on their own and return to the menu');
-
-  console.log('# Credits from the ending panel');
+  check(await ev(() => !document.getElementById('b-x-credits') && !NW.Story.playCredits), 'no Credits button on the menu, no credits scene');
   await ev(() => NW.G.newGame({ mode: 'standard', seed: 1234, intro: false, guided: false }));
   await ev(() => { NW.G.state.nightsSurvived = 7; NW.UI.open('ending', { night: 7, lines: ['The fire held.'], ending: null }); });
   await page.waitForTimeout(150);
-  check(await ev(() => !!document.getElementById('end-x-credits') && NW.G.paused), 'ending panel has a Credits button');
+  check(await ev(() => NW.UI.isOpen('ending') && !document.getElementById('end-x-credits') && NW.G.paused), 'ending panel opens without a Credits button');
   await shot('ending-panel');
-  await page.click('#end-x-credits'); await page.waitForTimeout(250);
-  check(await ev(() => NW.G.mode === 'scene' && !NW.UI.isOpen('ending') && document.getElementById('hud').classList.contains('hidden')), 'credits play from the ending');
-  await ev(() => { NW.scene.t = 6; }); await page.waitForTimeout(120); await shot('credits-ending');
-  check(await ev(() => NW.G.save('manual') === false), 'no saving mid-credits');
-  await page.keyboard.press('Enter'); await page.waitForTimeout(250);
-  st = await ev(() => ({ mode: NW.G.mode, open: NW.UI.isOpen('ending'), paused: NW.G.paused, hud: !document.getElementById('hud').classList.contains('hidden'), arg: NW.UI.arg.ending && NW.UI.arg.ending.night }));
-  check(st.mode === 'play' && st.open && st.paused && st.hud && st.arg === 7, 'back to the paused run with the ending panel reopened (' + JSON.stringify(st) + ')');
   await page.click('#end-go'); await page.waitForTimeout(150);
-  check(await ev(() => !NW.UI.isOpen('ending') && !NW.G.paused && NW.G.state.endless), 'Continue the watch still works afterwards');
-  check(await ev(() => typeof NW.Story.playCredits === 'function'), 'NW.Story.playCredits exported');
+  check(await ev(() => !NW.UI.isOpen('ending') && !NW.G.paused && NW.G.state.endless), 'Continue the watch still works');
 
   const hookErrs = await ev(() => NW.hookErrors || []);
   check(!hookErrs.length, 'no hook errors ' + JSON.stringify(hookErrs).slice(0, 400));

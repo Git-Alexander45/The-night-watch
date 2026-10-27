@@ -7,7 +7,7 @@ const WAVS = SHOTS + '/../wav';
 let fails = 0; const check = (c, m) => { console.log((c ? '  ok  ' : '  FAIL ') + m); if (!c) fails++; };
 const NEW = ['splash', 'reel', 'fish_flop', 'line_snap', 'ice_crack', 'snare_set', 'snare_snap', 'build_done', 'radio_chirp', 'mission_done', 'mission_fail', 'ladder', 'heavy_door', 'drip', 'mine_rumble', 'wind_high', 'trade', 'finale_sting', 'flare', 'helicopter', 'bell_toll', 'truck', 'typewriter', 'page', 'achievement'];
 const OLD = ['step', 'creak', 'knock', 'bang', 'door', 'latch', 'chop', 'pickup', 'rustle', 'click', 'hover', 'open', 'gun', 'dryfire', 'owl', 'howl', 'crow', 'bird', 'bell', 'heavystep', 'glasstap', 'glasscrack', 'glassbreak', 'wood_crack', 'scratch', 'rattle', 'drag', 'roofscrape', 'scream', 'shriek', 'roar', 'hurt', 'eat', 'drink', 'sizzle', 'beep', 'bark', 'growl', 'whine', 'heartbeat', 'whoosh', 'sting', 'gust', 'thud', 'sawing', 'hammer', 'shutter', 'curtain', 'fireup', 'branch', 'animal', 'paper'];
-const MODES = ['menu', 'day', 'night', 'intro', 'credits', 'finale', 'ending_good', 'ending_bad', 'interior', 'mine'];
+const MODES = ['menu', 'day', 'night', 'intro', 'finale', 'ending_good', 'ending_bad', 'interior', 'mine'];
 (async () => {
   fs.mkdirSync(SHOTS, { recursive: true }); fs.mkdirSync(WAVS, { recursive: true });
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
@@ -77,7 +77,7 @@ const MODES = ['menu', 'day', 'night', 'intro', 'credits', 'finale', 'ending_goo
       res[name] = btoa(bin);
     }
     return res;
-  }, [['helicopter', 'sfx'], ['ice_crack', 'sfx'], ['achievement', 'sfx'], ['credits', 'music'], ['mine', 'music']]);
+  }, [['helicopter', 'sfx'], ['ice_crack', 'sfx'], ['achievement', 'sfx'], ['menu', 'music'], ['mine', 'music']]);
   for (const k in wavs) fs.writeFileSync(WAVS + '/audio-' + k + '.wav', Buffer.from(wavs[k], 'base64'));
   console.log('  wavs written to ' + WAVS);
 
@@ -97,10 +97,10 @@ const MODES = ['menu', 'day', 'night', 'intro', 'credits', 'finale', 'ending_goo
   console.log('# Volumes');
   const vols = await ev(async () => {
     const A = NW.Audio, keep = Object.assign({}, A.vol), pk = (buf) => { let p = 0; const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) p = Math.max(p, Math.abs(d[i])); return p; };
-    A.vol.music = 0; const m0 = pk(await A.renderMusic('credits', 10));
+    A.vol.music = 0; const m0 = pk(await A.renderMusic('menu', 10));
     A.vol.music = keep.music; A.vol.sfx = 0; const s0 = pk(await A.renderSfx('ice_crack', { wet: 0.9 }, 3));
     A.vol.sfx = keep.sfx; A.vol.amb = 0; const a0 = pk(await A.renderAmb('wolves', 5));
-    A.vol.amb = keep.amb; const a1 = pk(await A.renderAmb('wolves', 5)); const m1 = pk(await A.renderMusic('credits', 10));
+    A.vol.amb = keep.amb; const a1 = pk(await A.renderAmb('wolves', 5)); const m1 = pk(await A.renderMusic('menu', 10));
     A.vol.master = 0; A.applyVolumes(); A.vol.master = keep.master; A.applyVolumes();
     return { m0, s0, a0, a1, m1 };
   });
@@ -119,7 +119,7 @@ const MODES = ['menu', 'day', 'night', 'intro', 'credits', 'finale', 'ending_goo
     check(st.mode === m && st.bar >= 1, 'mode ' + m + ' scheduling (bar ' + st.bar + ', live ' + (await live()) + ')');
   }
   console.log('  long runs');
-  for (const [m, sec] of [['finale', 30], ['mine', 22], ['credits', 16]]) {
+  for (const [m, sec] of [['finale', 30], ['mine', 22], ['menu', 30]]) {
     await ev((mm) => { NW.Audio.setMusic(mm); NW.Audio.ambience({ wind: 0.3, rain: 0, fire: 0, drone: 0, whisper: 0, radio: 0, tension: 0.8 }, 0.016); }, m);
     let mx = 0; for (let i = 0; i < sec; i++) { await page.waitForTimeout(1000); mx = Math.max(mx, await live()); }
     const st = await ev(() => NW.Audio.stats());

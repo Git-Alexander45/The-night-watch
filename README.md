@@ -83,7 +83,7 @@ pause menu stops the clock.
   visitors and nights), an opening scene, and a guided first day with arrows that point
   to each step.
 - **The finale:** the last night is a scripted set-piece. Your choices over the whole
-  run decide which of six endings you get (Easy keeps a single ending). Credits follow.
+  run decide which of six endings you get (Easy keeps a single ending).
 - **HQ orders:** from day 2, Base radios 1–2 tasks each morning. They are listed on the
   desk "HQ orders" tab and marked on the map, and pay out supplies and reputation.
 - **Recurring characters:** Garrow the trapper, Mara Quill the researcher, the Pell
